@@ -1,8 +1,10 @@
-I hate raw docker logs
+Prettify raw kuroco docker logs
 
-pipe the live rcms docker output into the python script:
+`python3 pretty_json.py [args]`
 
-`docker logs -f --tail 10 <CONTAINER_NAME> | python3 pretty_json.py`
+syntax:
+use `--SM` in message1, if you want small output
 
-syntax: 
-use `--SM` prefix for message1, if you want small output
+args:
+`--raw` if you don't want pretty output
+`--test` if you want kuroco-phpunit test container output

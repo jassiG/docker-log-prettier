@@ -1,5 +1,6 @@
 import sys
 import json
+import subprocess
 
 class bcolors:
     HEADER = '\033[95m'
@@ -33,6 +34,7 @@ class bcolors:
 # }
 
 raw = "--raw" in sys.argv
+test = "--test" in sys.argv
 
 def json_dumps_with_base_indent(obj, indent=2, base_indent=1):
     # Convert the object to a JSON string with the specified normal indentation
@@ -48,7 +50,25 @@ def json_dumps_with_base_indent(obj, indent=2, base_indent=1):
     # Join the lines back into a single string
     return '\n'.join(lines_with_base_indent)
 
-for line in sys.stdin:
+if test:
+    container = 'tests-php-1'
+else:
+    container = 'rcms-126931-php-1'
+
+process = subprocess.Popen(['docker', 'logs', '-f', '--tail', '10', container], 
+                           stdout=subprocess.PIPE, 
+                           stderr=subprocess.PIPE, 
+                           text=True)
+
+if test:
+    stream = process.stdout
+else:
+    stream = process.stderr
+
+# for line in process.stderr:
+#     print(f"Error: {line.strip()}", file=sys.stderr, flush=True)
+
+for line in stream: # the docker process is returning the logs in stderr
     try:
         if "lite_mode=1" in line:
             print('', end='')
@@ -69,6 +89,7 @@ for line in sys.stdin:
                         value = value.replace('LOGGG<<', '').replace('>>LOGGG', '').split(':')
                         print(' ' + f'{key}: ', end='')
                         print(bcolors.OKGREEN + f'{value[0]}' + bcolors.ENDC, end=' ')
+                        print(bcolors.OKCYAN + f'{value[1]}' + bcolors.ENDC, end=' ')
                         print(bcolors.BOLD + f'{value[2]}' + bcolors.ENDC, end=': ')
                     elif value:
                         value = value.replace('--SM', '')
@@ -95,4 +116,4 @@ for line in sys.stdin:
                         print(bcolors.OKCYAN + value + bcolors.ENDC, end='\n')
                 print(bcolors.OKCYAN + '}' + bcolors.ENDC, end='\n')
     except json.JSONDecodeError:
-            print(line, end='\n')
+            print(line, end='')
